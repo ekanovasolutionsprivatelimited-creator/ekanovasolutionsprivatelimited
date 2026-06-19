@@ -138,62 +138,51 @@ export async function POST(request: NextRequest) {
     }
 
     const adminHtml = adminEnquiryTemplate(data);
-    const customerHtml = customerAutoReplyTemplate(data.name);
     let emailWarning = '';
     const resendApiKey = process.env.RESEND_API_KEY;
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'EkaNova Solutions <onboarding@resend.dev>';
     const usingTestSender = fromEmail.toLowerCase().includes('onboarding@resend.dev');
 
     if (resendApiKey && !resendApiKey.includes('YOUR_') && !resendApiKey.includes('your_')) {
-      const customerEmail = data.email.trim().toLowerCase();
+      const adminResult = await resend.emails.send({
+        from: fromEmail,
+        to: siteConfig.businessEmail,
+        subject: 'New enquiry on EkaNova Solutions website',
+        html: adminHtml,
+      }).then(
+        (value) => ({ status: 'fulfilled' as const, value }),
+        (reason) => ({ status: 'rejected' as const, reason })
+      );
 
-      const [adminResult, customerResult] = await Promise.allSettled([
-        resend.emails.send({
-          from: fromEmail,
-          to: siteConfig.businessEmail,
-          subject: 'New enquiry on EkaNova Solutions website',
-          html: adminHtml,
-        }),
-        resend.emails.send({
+      if (adminResult.status === 'rejected') {
+        console.error('Admin email send failed', adminResult.reason);
+        emailWarning = ' Owner email notification could not be delivered.';
+      }
+
+      if (usingTestSender && !emailWarning) {
+        emailWarning =
+          ' Customer auto-reply is disabled on the free test sender. Owner notification was sent successfully.';
+      } else if (!usingTestSender) {
+        const customerEmail = data.email.trim().toLowerCase();
+        const customerHtml = customerAutoReplyTemplate(data.name);
+        const customerResult = await resend.emails.send({
           from: fromEmail,
           to: customerEmail,
           subject: 'Enquiry received - we will contact you within 12 hours | EkaNova Solutions',
           html: customerHtml,
-        }),
-      ]);
+        }).then(
+          (value) => ({ status: 'fulfilled' as const, value }),
+          (reason) => ({ status: 'rejected' as const, reason })
+        );
 
-      if (adminResult.status === 'rejected') {
-        console.error('Admin email send failed', adminResult.reason);
-      }
-      if (customerResult.status === 'rejected') {
-        const reasonMessage = extractErrorMessage(customerResult.reason);
-        console.error('Customer auto-reply send failed', reasonMessage);
-
-        if (
-          reasonMessage.includes('statusCode":403') &&
-          (reasonMessage.toLowerCase().includes('verify a domain') ||
-            reasonMessage.toLowerCase().includes('domain is not verified'))
-        ) {
-          // Fallback preview copy to owner while domain is unverified.
-          await resend.emails.send({
-            from: fromEmail,
-            to: siteConfig.businessEmail,
-            subject: `[Preview] Customer auto-reply for ${customerEmail}`,
-            html: customerHtml,
-          });
-          emailWarning =
-            ' Customer confirmation is blocked until domain is verified. Preview sent to owner email.';
-        } else {
+        if (customerResult.status === 'rejected') {
+          const reasonMessage = extractErrorMessage(customerResult.reason);
+          console.error('Customer auto-reply send failed', reasonMessage);
           emailWarning = ' Auto-reply could not be delivered to the entered email.';
         }
       }
     } else {
       emailWarning = ' Email skipped: RESEND_API_KEY is not configured.';
-    }
-
-    if (!emailWarning && usingTestSender) {
-      emailWarning =
-        ' Using Resend test sender (onboarding@resend.dev). Verify your domain and switch RESEND_FROM_EMAIL for real user delivery.';
     }
 
     return NextResponse.json({
