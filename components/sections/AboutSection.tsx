@@ -16,7 +16,7 @@ const pillars = [
     title: 'Our Mission',
     color: 'text-purple-400',
     bg: 'from-purple-500/10 to-transparent',
-    desc: 'Empower every student to build real, deployable projects that actually matter — not just submissions that collect dust.',
+    desc: 'Empower every student to build real, deployable projects that actually matter - not just submissions that collect dust.',
   },
   {
     icon: Lightbulb,
@@ -56,7 +56,6 @@ export default function AboutSection() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className={`text-center mb-16 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 glass text-xs text-white/50 mb-4">
             About Us
@@ -72,7 +71,6 @@ export default function AboutSection() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left: Pillars */}
           <div className={`space-y-4 transition-all duration-700 delay-200 ${visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
             {pillars.map((pillar) => (
               <div
@@ -92,7 +90,6 @@ export default function AboutSection() {
               </div>
             ))}
 
-            {/* Real world experience card */}
             <div className="p-6 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-cyan-500/5">
               <div className="flex items-center gap-3 mb-3">
                 <Rocket className="w-5 h-5 text-purple-400" />
@@ -100,18 +97,17 @@ export default function AboutSection() {
               </div>
               <p className="text-white/50 text-sm leading-relaxed">
                 Every project we build includes live deployment, documentation, and post-delivery support.
-                Students don't just submit code — they present working products.
+                Students don&apos;t just submit code - they present working products.
               </p>
             </div>
           </div>
 
-          {/* Right: Timeline */}
           <div className={`transition-all duration-700 delay-400 ${visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
             <h3 className="text-lg font-semibold text-white/70 mb-6">Our Journey</h3>
             <div className="relative">
               <div className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-purple-500/50 via-cyan-500/30 to-transparent" />
               <div className="space-y-6">
-                {timeline.map((item, i) => (
+                {timeline.map((item) => (
                   <div key={item.year} className="flex gap-6 pl-12 relative">
                     <div className="absolute left-0 top-1 w-10 h-10 rounded-full glass border border-purple-500/30 flex items-center justify-center z-10">
                       <span className="text-xs font-bold text-purple-400">{item.year.slice(2)}</span>

@@ -7,17 +7,14 @@ import { testimonials } from '@/data/content';
 function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
   return (
     <div className="shrink-0 w-80 glass border border-white/5 rounded-2xl p-6 mx-3 hover:border-white/10 transition-all duration-300 group">
-      {/* Stars */}
       <div className="flex gap-1 mb-4">
         {[...Array(t.rating)].map((_, i) => (
           <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         ))}
       </div>
 
-      {/* Review */}
-      <p className="text-white/70 text-sm leading-relaxed mb-5 italic">"{t.review}"</p>
+      <p className="text-white/70 text-sm leading-relaxed mb-5 italic">&ldquo;{t.review}&rdquo;</p>
 
-      {/* Author */}
       <div className="flex items-center gap-3">
         <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-xs font-bold text-white shrink-0`}>
           {t.avatar}
@@ -54,7 +51,6 @@ export default function TestimonialsSection() {
       </div>
 
       <div className="relative z-10">
-        {/* Header */}
         <div className={`text-center mb-16 px-4 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 glass text-xs text-white/50 mb-4">
             Student Reviews
@@ -67,7 +63,6 @@ export default function TestimonialsSection() {
           </p>
         </div>
 
-        {/* Infinite scroll row 1 */}
         <div className="relative mb-4 overflow-hidden">
           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#06060e] to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#06060e] to-transparent z-10" />
@@ -78,7 +73,6 @@ export default function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Infinite scroll row 2 — reverse */}
         <div className="relative overflow-hidden">
           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#06060e] to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#06060e] to-transparent z-10" />

@@ -39,7 +39,6 @@ export default function WhyChooseUsSection() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className={`text-center mb-16 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 glass text-xs text-white/50 mb-4">
             Why Ekanova
@@ -48,11 +47,10 @@ export default function WhyChooseUsSection() {
             Why Choose <span className="gradient-text">Us?</span>
           </h2>
           <p className="text-white/50 max-w-xl mx-auto">
-            We're not just developers — we're mentors, educators, and partners in your academic journey.
+            We&apos;re not just developers - we&apos;re mentors, educators, and partners in your academic journey.
           </p>
         </div>
 
-        {/* Cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {whyChooseUs.map((item, i) => {
             const Icon = iconMap[item.icon] || Zap;
