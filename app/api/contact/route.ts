@@ -160,8 +160,26 @@ export async function POST(request: NextRequest) {
       }
 
       if (usingTestSender && !emailWarning) {
-        emailWarning =
-          ' Customer auto-reply is disabled on the free test sender. Owner notification was sent successfully.';
+        const customerEmail = data.email.trim().toLowerCase();
+        const customerHtml = customerAutoReplyTemplate(data.name);
+        const previewResult = await resend.emails.send({
+          from: fromEmail,
+          to: siteConfig.businessEmail,
+          subject: `[Preview] Customer auto-reply for ${customerEmail}`,
+          html: customerHtml,
+        }).then(
+          (value) => ({ status: 'fulfilled' as const, value }),
+          (reason) => ({ status: 'rejected' as const, reason })
+        );
+
+        if (previewResult.status === 'rejected') {
+          console.error('Customer auto-reply preview send failed', previewResult.reason);
+          emailWarning =
+            ' Owner enquiry email was sent, but preview thank-you email could not be delivered.';
+        } else {
+          emailWarning =
+            ' Customer thank-you email preview was sent to the owner inbox. Customer auto-reply remains disabled on the free test sender.';
+        }
       } else if (!usingTestSender) {
         const customerEmail = data.email.trim().toLowerCase();
         const customerHtml = customerAutoReplyTemplate(data.name);
