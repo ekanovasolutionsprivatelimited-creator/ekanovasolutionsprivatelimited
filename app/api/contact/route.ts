@@ -34,20 +34,26 @@ function extractErrorMessage(reason: unknown) {
 }
 
 async function saveEnquiryLocally(enquiry: LocalEnquiry) {
-  const localDataDir = path.join(process.cwd(), 'data');
-  const filePath = path.join(localDataDir, 'enquiries.local.json');
-  await mkdir(localDataDir, { recursive: true });
-
-  let current: LocalEnquiry[] = [];
   try {
-    const raw = await readFile(filePath, 'utf8');
-    current = JSON.parse(raw) as LocalEnquiry[];
-  } catch {
-    current = [];
-  }
+    const localDataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(localDataDir, 'enquiries.local.json');
+    await mkdir(localDataDir, { recursive: true });
 
-  current.unshift(enquiry);
-  await writeFile(filePath, JSON.stringify(current, null, 2), 'utf8');
+    let current: LocalEnquiry[] = [];
+    try {
+      const raw = await readFile(filePath, 'utf8');
+      current = JSON.parse(raw) as LocalEnquiry[];
+    } catch {
+      current = [];
+    }
+
+    current.unshift(enquiry);
+    await writeFile(filePath, JSON.stringify(current, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Local enquiry storage failed', error);
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -89,6 +95,8 @@ export async function POST(request: NextRequest) {
 
     const supabaseAdmin = tryGetSupabaseAdminClient();
     let usedLocalFallback = false;
+    let storageWarning = '';
+    const isVercelRuntime = process.env.VERCEL === '1';
 
     if (supabaseAdmin) {
       const { data: duplicate } = await supabaseAdmin
@@ -106,16 +114,27 @@ export async function POST(request: NextRequest) {
       const { error: insertError } = await supabaseAdmin.from('enquiries').insert(enquiryPayload);
       if (insertError) {
         if (insertError.code === 'PGRST205') {
-          console.warn('Supabase table "enquiries" not found. Using local fallback storage.');
+          console.warn('Supabase table "enquiries" not found.');
         } else {
           console.error('Insert enquiry error', insertError);
         }
-        await saveEnquiryLocally(enquiryPayload);
-        usedLocalFallback = true;
+
+        if (!isVercelRuntime) {
+          usedLocalFallback = await saveEnquiryLocally(enquiryPayload);
+        }
+
+        storageWarning = usedLocalFallback
+          ? ' Enquiry stored locally at data/enquiries.local.json.'
+          : ' Enquiry email can still be sent, but dashboard storage is currently unavailable.';
       }
     } else {
-      await saveEnquiryLocally(enquiryPayload);
-      usedLocalFallback = true;
+      if (!isVercelRuntime) {
+        usedLocalFallback = await saveEnquiryLocally(enquiryPayload);
+      }
+
+      storageWarning = usedLocalFallback
+        ? ' Enquiry stored locally at data/enquiries.local.json.'
+        : ' Enquiry email can still be sent, but dashboard storage is currently unavailable.';
     }
 
     const adminHtml = adminEnquiryTemplate(data);
@@ -177,12 +196,8 @@ export async function POST(request: NextRequest) {
         ' Using Resend test sender (onboarding@resend.dev). Verify your domain and switch RESEND_FROM_EMAIL for real user delivery.';
     }
 
-    const fallbackMessage = usedLocalFallback
-      ? ' Enquiry stored locally at data/enquiries.local.json. Run supabase/schema.sql to enable cloud save.'
-      : '';
-
     return NextResponse.json({
-      message: `Enquiry submitted successfully.${fallbackMessage}${emailWarning}`,
+      message: `Enquiry submitted successfully.${storageWarning}${emailWarning}`,
     });
   } catch (error) {
     console.error('Contact route error', error);
